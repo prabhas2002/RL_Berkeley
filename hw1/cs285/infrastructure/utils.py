@@ -31,18 +31,18 @@ def sample_trajectory(env, policy, max_path_length, render=False):
             else:
                 img = env.render(mode='single_rgb_array')
             image_obs.append(cv2.resize(img, dsize=(250, 250), interpolation=cv2.INTER_CUBIC))
-    
-        # TODO use the most recent ob to decide what to do
-        ob = ptu.from_numpy(ob)
-        ac =  policy.forward(ob).sample() # HINT: this is a numpy array
-        ac = ac.cpu().numpy()
-       
+
+        # TODO use the most recent ob to decide what to do   
+        ac = policy.get_action(ob) # HINT: query the policy's get_action function
+        ac = ac[0]  
+        
         # TODO: take that action and get reward and next ob
-        next_ob, rew, terminated, truncated , _ = env.step(ac)
+        next_ob, rew, terminated , truncated , _ = env.step(ac)
         
         # TODO rollout can end due to done, or due to max_path_length
         steps += 1
-        rollout_done = terminated or truncated or steps >= max_path_length # HINT: this is either 0 or 1
+        
+        rollout_done = terminated  or truncated or steps >= max_path_length # HINT: this is either 0 or 1
         
         # record result of taking that action
         obs.append(ob)
@@ -124,11 +124,11 @@ def compute_metrics(paths, eval_paths):
     # returns, for logging
     train_returns = [path["reward"].sum() for path in paths]
     eval_returns = [eval_path["reward"].sum() for eval_path in eval_paths]
-
+    
     # episode lengths, for logging
     train_ep_lens = [len(path["reward"]) for path in paths]
     eval_ep_lens = [len(eval_path["reward"]) for eval_path in eval_paths]
-
+    print(eval_returns)
     # decide what to log
     logs = OrderedDict()
     logs["Eval_AverageReturn"] = np.mean(eval_returns)
@@ -136,7 +136,7 @@ def compute_metrics(paths, eval_paths):
     logs["Eval_MaxReturn"] = np.max(eval_returns)
     logs["Eval_MinReturn"] = np.min(eval_returns)
     logs["Eval_AverageEpLen"] = np.mean(eval_ep_lens)
-
+    
     logs["Train_AverageReturn"] = np.mean(train_returns)
     logs["Train_StdReturn"] = np.std(train_returns)
     logs["Train_MaxReturn"] = np.max(train_returns)

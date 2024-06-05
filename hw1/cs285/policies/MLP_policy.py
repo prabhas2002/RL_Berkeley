@@ -131,9 +131,11 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         # `torch.distributions.Distribution` object. It's up to you!
         # raise NotImplementedError
        
-        action_mean = self.mean_net(observation)
-        action_dist = distributions.Normal(action_mean , torch.exp(self.logstd))
-        return action_dist
+        mean = self.mean_net(observation)
+        std = torch.exp(self.logstd)
+        normal_distribution = torch.distributions.Normal(mean, std)
+        action = normal_distribution.sample()
+        return action
     
     def update(self, observations, actions):
         """
@@ -145,25 +147,36 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             dict: 'Training Loss': supervised learning loss
         """
         # TODO: update the policy and return the loss
-        #loss = TODO
-        loss = -self.forward(observations).log_prob(actions).mean()
+       
+        self.optimizer.zero_grad()
+        
+        mean = self.mean_net(torch.Tensor(observations).to(ptu.device))
+        std = torch.exp(self.logstd)
+        normal_distribution = torch.distributions.Normal(mean, std)
+        log_probs = normal_distribution.log_prob(torch.Tensor(actions).to(ptu.device))
+
+        # Calculate the policy gradient loss
+        loss = -log_probs.mean()
+
+        # Perform a backward pass and an optimization step
+        loss.backward()
+        self.optimizer.step()
+
         return {
             # You can add extra logging information here, but keep this line
             'Training Loss': ptu.to_numpy(loss),
         }
         
-    # def get_action(self, observation):
-    #     """
-    #     Returns a single action for a single observation
+        
+    def get_action(self, obs):
+        if len(obs.shape)>1:
+            observation = obs
+        else:
+            observation = obs[None]
 
-    #     :param observation: observation to query the policy
-    #     :return:
-    #         action: action sampled from the policy
-    #     """
-    #     if len(observation.shape) > 1:
-    #         observation = observation
-    #     else:
-    #         observation = observation[None, :]
-    #     observation = ptu.from_numpy(observation.astype(np.float32))
-    #     action = self.forward(observation)
-    #     return np.array([action])
+        observation = ptu.from_numpy(observation.astype(np.float32))
+        mean = self.mean_net(observation)
+        std = torch.exp(self.logstd)
+        normal_distribution = torch.distributions.Normal(mean, std)
+        action = normal_distribution.sample()
+        return ptu.to_numpy(action)
