@@ -147,14 +147,16 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             dict: 'Training Loss': supervised learning loss
         """
         # TODO: update the policy and return the loss
-       
+        
+        self.mean_net.train()
         self.optimizer.zero_grad()
         
         mean = self.mean_net(torch.Tensor(observations).to(ptu.device))
         std = torch.exp(self.logstd)
         normal_distribution = torch.distributions.Normal(mean, std)
-        log_probs = normal_distribution.log_prob(torch.Tensor(actions).to(ptu.device))
-
+        #because we use imitation learning , we try to imncrease the prob of action recieved.
+        log_probs = normal_distribution.log_prob(torch.Tensor(actions).to(ptu.device)) 
+        
         # Calculate the policy gradient loss
         loss = -log_probs.mean()
 
@@ -168,7 +170,11 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         }
         
         
-    def get_action(self, obs):
+    def get_action(self, obs , eval = False): #for exploration in training.
+        if eval == True:
+            self.mean_net.eval()
+            return self.get_action(obs)
+        
         if len(obs.shape)>1:
             observation = obs
         else:
@@ -180,3 +186,6 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         normal_distribution = torch.distributions.Normal(mean, std)
         action = normal_distribution.sample()
         return ptu.to_numpy(action)
+    
+    # def inference(self, obs):
+    #     return self.get_action(obs)  # mean is the action (highest probability of action in gaussian distribution)

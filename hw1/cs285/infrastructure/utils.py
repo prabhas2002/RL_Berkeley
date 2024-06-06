@@ -13,7 +13,7 @@ import time
 from cs285.infrastructure import pytorch_util as ptu
 
 
-def sample_trajectory(env, policy, max_path_length, render=False):
+def sample_trajectory(env, policy, max_path_length, render=False,eval = False):
     """Sample a rollout in the environment from a policy."""
     
     # initialize env for the beginning of a new rollout
@@ -33,7 +33,7 @@ def sample_trajectory(env, policy, max_path_length, render=False):
             image_obs.append(cv2.resize(img, dsize=(250, 250), interpolation=cv2.INTER_CUBIC))
 
         # TODO use the most recent ob to decide what to do   
-        ac = policy.get_action(ob) # HINT: query the policy's get_action function
+        ac = policy.get_action(ob,eval) # HINT: query the policy's get_action function
         ac = ac[0]  
         
         # TODO: take that action and get reward and next ob
@@ -65,7 +65,7 @@ def sample_trajectory(env, policy, max_path_length, render=False):
             "terminal": np.array(terminals, dtype=np.float32)}
 
 
-def sample_trajectories(env, policy, min_timesteps_per_batch, max_path_length, render=False):
+def sample_trajectories(env, policy, min_timesteps_per_batch, max_path_length, render=False,eval=False):
     """Collect rollouts until we have collected min_timesteps_per_batch steps."""
 
     timesteps_this_batch = 0
@@ -73,7 +73,8 @@ def sample_trajectories(env, policy, min_timesteps_per_batch, max_path_length, r
     while timesteps_this_batch < min_timesteps_per_batch:
 
         #collect rollout
-        path = sample_trajectory(env, policy, max_path_length, render)
+        path = sample_trajectory(env, policy, max_path_length, render,eval=eval)
+       
         paths.append(path)
 
         #count steps
@@ -129,6 +130,7 @@ def compute_metrics(paths, eval_paths):
     train_ep_lens = [len(path["reward"]) for path in paths]
     eval_ep_lens = [len(eval_path["reward"]) for eval_path in eval_paths]
     print(eval_returns)
+    print(train_returns)
     # decide what to log
     logs = OrderedDict()
     logs["Eval_AverageReturn"] = np.mean(eval_returns)

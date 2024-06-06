@@ -20,6 +20,9 @@ from cs285.infrastructure.replay_buffer import ReplayBuffer
 from cs285.policies.MLP_policy import MLPPolicySL
 from cs285.policies.loaded_gaussian_policy import LoadedGaussianPolicy
 
+import ctypes
+import ctypes.util
+ctypes.CDLL(ctypes.util.find_library('GL'), ctypes.RTLD_GLOBAL)
 
 # how many rollouts to save as videos to tensorboard
 MAX_NVIDEO = 2
@@ -183,7 +186,7 @@ def run_training_loop(params):
         if log_video:
             # save eval rollouts as videos in tensorboard event file
             print('\nCollecting video rollouts eval')
-            eval_video_paths = utils.sample_n_trajectories(
+            eval_video_paths = utils.sample_trajectories(
                 env, actor, MAX_NVIDEO, MAX_VIDEO_LEN, True)
 
             # save videos
@@ -198,7 +201,7 @@ def run_training_loop(params):
             # save eval metrics
             print("\nCollecting data for eval...")
             eval_paths, eval_envsteps_this_batch = utils.sample_trajectories(
-                env, actor, params['eval_batch_size'], params['ep_len'])
+                env, actor, params['eval_batch_size'], params['ep_len'],eval=True)
 
             logs = utils.compute_metrics(paths, eval_paths)
             # compute additional metrics
