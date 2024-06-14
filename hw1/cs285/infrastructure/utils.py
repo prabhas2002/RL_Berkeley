@@ -129,8 +129,6 @@ def compute_metrics(paths, eval_paths):
     # episode lengths, for logging
     train_ep_lens = [len(path["reward"]) for path in paths]
     eval_ep_lens = [len(eval_path["reward"]) for eval_path in eval_paths]
-    print(eval_returns)
-    print(train_returns)
     # decide what to log
     logs = OrderedDict()
     logs["Eval_AverageReturn"] = np.mean(eval_returns)

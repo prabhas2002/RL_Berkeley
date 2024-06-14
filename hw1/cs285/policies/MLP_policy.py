@@ -133,9 +133,7 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
        
         mean = self.mean_net(observation)
         std = torch.exp(self.logstd)
-        normal_distribution = torch.distributions.Normal(mean, std)
-        action = normal_distribution.sample()
-        return action
+        return mean,std
     
     def update(self, observations, actions):
         """
@@ -150,16 +148,14 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         
         self.mean_net.train()
         self.optimizer.zero_grad()
-        
-        mean = self.mean_net(torch.Tensor(observations).to(ptu.device))
-        std = torch.exp(self.logstd)
-        normal_distribution = torch.distributions.Normal(mean, std)
+        obs = torch.Tensor(observations).to(ptu.device)
+        params = self.forward(obs)
+        normal_distribution = torch.distributions.Normal(params[0], params[1])
         #because we use imitation learning , we try to imncrease the prob of action recieved.
         log_probs = normal_distribution.log_prob(torch.Tensor(actions).to(ptu.device)) 
         
         # Calculate the policy gradient loss
         loss = -log_probs.mean()
-
         # Perform a backward pass and an optimization step
         loss.backward()
         self.optimizer.step()
@@ -181,11 +177,8 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             observation = obs[None]
 
         observation = ptu.from_numpy(observation.astype(np.float32))
-        mean = self.mean_net(observation)
-        std = torch.exp(self.logstd)
-        normal_distribution = torch.distributions.Normal(mean, std)
-        action = normal_distribution.sample()
+        params= self.forward(observation)
+        action = torch.normal(params[0], params[1])
         return ptu.to_numpy(action)
     
-    # def inference(self, obs):
-    #     return self.get_action(obs)  # mean is the action (highest probability of action in gaussian distribution)
+    
