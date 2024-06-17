@@ -6,6 +6,6 @@ Hi, This repository is an unofficial Pytorch implemenation for CS285 Deep RL cou
 Completed 1,2 Homework assignments. (not implemented GAE in hw2)
 
 ## Update (18/06/24)
-Completed CQN and Double-DQN in assignmnet -3 
+Completed DQN and Double-DQN in assignmnet -3 
 
 TODO : Actor Critic in assignmnet -3
