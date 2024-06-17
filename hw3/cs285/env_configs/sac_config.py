@@ -24,7 +24,7 @@ def sac_config(
     critic_learning_rate: float = 3e-4,
     total_steps: int = 300000,
     random_steps: int = 5000,
-    training_starts: int = 10000,
+    training_starts: int = 2000,
     batch_size: int = 128,
     replay_buffer_capacity: int = 1000000,
     ep_len: Optional[int] = None,
@@ -94,7 +94,7 @@ def sac_config(
             ClipAction(
                 RescaleAction(
                     gym.make(
-                        env_name, render_mode="single_rgb_array" if render else None
+                        env_name,new_step_api=True, render_mode="single_rgb_array" if render else None
                     ),
                     -1,
                     1,

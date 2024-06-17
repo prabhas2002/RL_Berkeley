@@ -62,16 +62,16 @@ def run_training_loop(config: dict, logger: Logger, args: argparse.Namespace):
     replay_buffer = ReplayBuffer(config["replay_buffer_capacity"])
 
     observation = env.reset()
-
+    
     for step in tqdm.trange(config["total_steps"], dynamic_ncols=True):
         if step < config["random_steps"]:
             action = env.action_space.sample()
         else:
             # TODO(student): Select an action
-            action = ...
+            action = agent.get_action(observation)
 
         # Step the environment and add the data to the replay buffer
-        next_observation, reward, done, info = env.step(action)
+        next_observation, reward, done ,info = env.step(action)
         replay_buffer.insert(
             observation=observation,
             action=action,
@@ -90,8 +90,10 @@ def run_training_loop(config: dict, logger: Logger, args: argparse.Namespace):
         # Train the agent
         if step >= config["training_starts"]:
             # TODO(student): Sample a batch of config["batch_size"] transitions from the replay buffer
-            batch = ...
-            update_info = ...
+            #batch = ...
+            batch = replay_buffer.sample(config["batch_size"])
+            #update_info = ...
+            update_info = agent.update(batch['observations'], batch['actions'], batch['rewards'], batch['next_observations'], batch['dones'],step)
 
             # Logging
             update_info["actor_lr"] = agent.actor_lr_scheduler.get_last_lr()[0]
