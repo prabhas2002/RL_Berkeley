@@ -93,6 +93,7 @@ def run_training_loop(config: dict, logger: Logger, args: argparse.Namespace):
             #batch = ...
             batch = replay_buffer.sample(config["batch_size"])
             #update_info = ...
+           
             update_info = agent.update(batch['observations'], batch['actions'], batch['rewards'], batch['next_observations'], batch['dones'],step)
 
             # Logging
