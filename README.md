@@ -11,4 +11,4 @@ Completed DQN and Double-DQN in assignmnet -3
 TODO : Actor Critic in assignmnet -3
 
 ## Update (18/06/24)
-Attempedted SAC in assignmnet-3, but somebugs needs to be fixed.
+Attempedted SAC in assignmnet-3, but somebugs needs to be fixed. But over all its working good.
